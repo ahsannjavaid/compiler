@@ -1,5 +1,5 @@
 %{
-  #include "y.tab.h"
+  #include "arrays.tab.h"
 %}
 
 %option noyywrap
@@ -11,20 +11,16 @@ NEWLINE   [\n\r]+
 
 %%
 
-"double"            return DOUBLE;
-"array"             return ARRAY;
-{ID}                return IDENTIFIER;
-"["                 return OPEN_BRACKET;
-"]"                 return CLOSE_BRACKET;
-":"                 return SLICE;
-{DIGIT}+(\.{DIGIT}+)?    return NUMBER;
-{WS}                /* ignore whitespace */;
-{NEWLINE}           return NEWLINE;
-.                   return yytext[0];
+{NEWLINE}           { printf("NEWLINE\n"); return NEWLINE; }
+"double"            { printf("DOUBLE\n"); return DOUBLE; }
+"array"             { printf("ARRAY\n"); return ARRAY; }
+{ID}                { printf("IDENTIFIER: %s\n", yytext); return IDENTIFIER; }
+"["                 { printf("OPEN_BRACKET\n"); return OPEN_BRACKET; }
+{DIGIT}+(\.{DIGIT}+)? { printf("NUMBER: %s\n", yytext); return NUMBER; }
+"]"                 { printf("CLOSE_BRACKET\n"); return CLOSE_BRACKET; }
+{WS}                /* ignore whitespace */ ;
+.                   return yytext[0];  // Catch-all rule moved to the bottom
 
 %%
 
   /* User-defined functions, such as `yywrap()` or helper functions */
-int yywrap() {
-  return 1;
-}
