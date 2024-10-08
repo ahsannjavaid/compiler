@@ -2,6 +2,7 @@
   /* C code or headers included here */
 #include <stdio.h>
 #include <stdlib.h>
+#include "IR.h"
 
 extern int yylex();
 extern int yyparse();
@@ -10,12 +11,28 @@ void yyerror(const char *s);
 
 %}
 
-//%token TOKEN1 TOKEN2  /* Token declarations */
-%token DOUBLE ARRAY IDENTIFIER OPEN_BRACKET CLOSE_BRACKET SLICE NUMBER NEWLINE
+%union {
+	char *identifier;
+	double double_literal;
+	int int_literal;
+}
+
+%token <identifier> IDENTIFIER
+%token <double_literal> NUMBER
+
+%type <double_literal> term expr array_access
+%type <int_literal> array_index
+
+%left '+' '-' 
+%left '*' '/'
+%left '(' ')'
+
+%token DOUBLE ARRAY PRINT OPEN_BRACKET CLOSE_BRACKET SLICE NEWLINE
+
+%start program
 
 %%
 
-  /* Grammar rules and associated actions */
 program:
   program statement NEWLINE
   | statement NEWLINE
@@ -25,40 +42,76 @@ statement:
   declaration
   | assignment
   | array_access
-  | array_slice
+  | print_statement
   ;
 
 declaration:
-  DOUBLE ARRAY IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET    { printf("Declaring a single-dimensional array\n"); }
-  | DOUBLE ARRAY IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET OPEN_BRACKET NUMBER CLOSE_BRACKET   { printf("Declaring a double-dimensional array\n"); }
+  DOUBLE ARRAY IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET    {
+    declareArrayInSymbolTable($3, (int) $5);
+  }
+  | DOUBLE ARRAY IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET OPEN_BRACKET NUMBER CLOSE_BRACKET {
+    declare2DArrayInSymbolTable($3, (int) $5, (int) $8);
+  }
   ;
 
 assignment:
-  array_access '=' expr	{ printf("Assigning value to array\n"); }
-  | IDENTIFIER '=' expr      { printf("Assigning value to variable\n"); }
+  IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET '=' expr {
+    setArrayValueInSymbolTable($1, $3, $6);  // Fixed types for 1D array
+  }
+  | IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET OPEN_BRACKET array_index CLOSE_BRACKET '=' expr {
+    set2DArrayValueInSymbolTable($1, $3, $6, $9);  // Handle 2D array assignment
+  }
+  | IDENTIFIER '=' expr {
+    setValueInSymbolTable($1, $3);
+  }
   ;
 
 array_access:
-  IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET    { printf("Accessing array element at index\n"); }
-  | IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET OPEN_BRACKET NUMBER CLOSE_BRACKET   { printf("Accessing 2D array element at index\n"); }
+  IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET {
+    $$ = getArrayValueFromSymbolTable($1, $3);
+  }
+  | IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET OPEN_BRACKET array_index CLOSE_BRACKET {
+    $$ = get2DArrayValueFromSymbolTable($1, $3, $6);
+  }
   ;
 
-array_slice:
-  IDENTIFIER OPEN_BRACKET NUMBER ':' NUMBER CLOSE_BRACKET   { printf("Array slicing\n"); }
+print_statement:
+  PRINT '(' expr ')' {
+    printf("%lf\n", $3);
+  }
+  ;
+
+term:
+  IDENTIFIER {
+    $$ = getValueFromSymbolTable($1);
+  }
+  | NUMBER {
+    $$ = $1;
+  }
+  ;
+
+array_index:
+  NUMBER {
+    $$ = (int) $1;
+  }
   ;
 
 expr:
-  NUMBER
-  | IDENTIFIER
-  ;
-
+   term { $$ = $1; }
+   | array_access { $$ = $1; }
+   | expr '+' expr { $$ = performBinaryOperation($1, $3, '+'); }
+   | expr '-' expr { $$ = performBinaryOperation($1, $3, '-'); }
+   | expr '*' expr { $$ = performBinaryOperation($1, $3, '*'); }
+   | expr '/' expr { $$ = performBinaryOperation($1, $3, '/'); }
+   | '(' expr ')' { $$ = $2; }
+   ;	   
 
 %%
 
-  /* User-defined functions such as `main()`, `yyerror()`, etc. */
 void yyerror(const char *s) {
-  extern int yylineno;  // Line number from lexer
-  fprintf(stderr, "Error: %s at line %d\n", s, yylineno);
+  extern int yylineno;
+  extern char *yytext;
+  fprintf(stderr, "Error: %s at line %d near '%s'\n", s, yylineno, yytext);
 }
 
 int main(int argc, char *argv[]) {
@@ -71,3 +124,4 @@ int main(int argc, char *argv[]) {
   fclose(yyin);
   return 0;
 }
+

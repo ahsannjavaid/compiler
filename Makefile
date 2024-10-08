@@ -1,7 +1,7 @@
-# Makefile for SSC compiler using Flex and Bison
+# Makefile for Arrays (Group 3) compiler using Flex and Bison
 
 # Compiler
-CXX = gcc
+CXX = clang++
 
 # Files
 LEXER = arrays.l
