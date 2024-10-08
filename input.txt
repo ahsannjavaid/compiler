@@ -5,4 +5,11 @@ arr[4] = 3.0
 
 double array matrix[5][5]
 matrix[2][3] = 10.5
-print(matrix[2][3] + arr[2])
+print(matrix[2][3] + arr[2])	// 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
+
+array [1.0, 4.0, 0.0, 98.0]
+set_tag positive: 1.0
+set_tag positive: 4.0
+set_tag positive: 98.0
+set_tag negative: 0.0
+filter_by_tag positive

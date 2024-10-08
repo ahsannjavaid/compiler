@@ -70,17 +70,34 @@
 #line 1 "arrays.y"
 
   /* C code or headers included here */
-#include <stdio.h>
-#include <stdlib.h>
 #include "IR.h"
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_SIZE 100
+
+typedef struct {
+    double value;
+    char *tag;
+} TaggedElement;
+
+typedef struct {
+    TaggedElement elements[MAX_SIZE];
+    int count;
+} TaggedArray;
 
 extern int yylex();
 extern int yyparse();
 extern FILE *yyin;
 void yyerror(const char *s);
 
+TaggedArray tagged_array; // Global tagged array
 
-#line 84 "arrays.tab.c"
+// Function to filter elements by tag
+void filter_by_tag(const char *tag);
+
+
+#line 101 "arrays.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -121,22 +138,29 @@ enum yysymbol_kind_t
   YYSYMBOL_10_ = 10,                       /* ')'  */
   YYSYMBOL_DOUBLE = 11,                    /* DOUBLE  */
   YYSYMBOL_ARRAY = 12,                     /* ARRAY  */
-  YYSYMBOL_PRINT = 13,                     /* PRINT  */
-  YYSYMBOL_OPEN_BRACKET = 14,              /* OPEN_BRACKET  */
-  YYSYMBOL_CLOSE_BRACKET = 15,             /* CLOSE_BRACKET  */
-  YYSYMBOL_SLICE = 16,                     /* SLICE  */
-  YYSYMBOL_NEWLINE = 17,                   /* NEWLINE  */
-  YYSYMBOL_18_ = 18,                       /* '='  */
-  YYSYMBOL_YYACCEPT = 19,                  /* $accept  */
-  YYSYMBOL_program = 20,                   /* program  */
-  YYSYMBOL_statement = 21,                 /* statement  */
-  YYSYMBOL_declaration = 22,               /* declaration  */
-  YYSYMBOL_assignment = 23,                /* assignment  */
-  YYSYMBOL_array_access = 24,              /* array_access  */
-  YYSYMBOL_print_statement = 25,           /* print_statement  */
-  YYSYMBOL_term = 26,                      /* term  */
-  YYSYMBOL_array_index = 27,               /* array_index  */
-  YYSYMBOL_expr = 28                       /* expr  */
+  YYSYMBOL_SET_TAG = 13,                   /* SET_TAG  */
+  YYSYMBOL_FILTER_BY_TAG = 14,             /* FILTER_BY_TAG  */
+  YYSYMBOL_PRINT = 15,                     /* PRINT  */
+  YYSYMBOL_OPEN_BRACKET = 16,              /* OPEN_BRACKET  */
+  YYSYMBOL_CLOSE_BRACKET = 17,             /* CLOSE_BRACKET  */
+  YYSYMBOL_COMMA = 18,                     /* COMMA  */
+  YYSYMBOL_COLON = 19,                     /* COLON  */
+  YYSYMBOL_NEWLINE = 20,                   /* NEWLINE  */
+  YYSYMBOL_21_ = 21,                       /* '='  */
+  YYSYMBOL_YYACCEPT = 22,                  /* $accept  */
+  YYSYMBOL_program = 23,                   /* program  */
+  YYSYMBOL_statement = 24,                 /* statement  */
+  YYSYMBOL_declaration = 25,               /* declaration  */
+  YYSYMBOL_assignment = 26,                /* assignment  */
+  YYSYMBOL_array_access = 27,              /* array_access  */
+  YYSYMBOL_print_statement = 28,           /* print_statement  */
+  YYSYMBOL_array_definition = 29,          /* array_definition  */
+  YYSYMBOL_array_elements = 30,            /* array_elements  */
+  YYSYMBOL_tag_assignment = 31,            /* tag_assignment  */
+  YYSYMBOL_filtering_operation = 32,       /* filtering_operation  */
+  YYSYMBOL_term = 33,                      /* term  */
+  YYSYMBOL_array_index = 34,               /* array_index  */
+  YYSYMBOL_expr = 35                       /* expr  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -462,21 +486,21 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  14
+#define YYFINAL  23
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   64
+#define YYLAST   78
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  19
+#define YYNTOKENS  22
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  10
+#define YYNNTS  14
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  25
+#define YYNRULES  33
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  59
+#define YYNSTATES  75
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   266
+#define YYMAXUTOK   269
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -496,7 +520,7 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        9,    10,     7,     5,     2,     6,     2,     8,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,    18,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,    21,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -516,16 +540,17 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
-      11,    12,    13,    14,    15,    16,    17
+      11,    12,    13,    14,    15,    16,    17,    18,    19,    20
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_int8 yyrline[] =
+static const yytype_uint8 yyrline[] =
 {
-       0,    37,    37,    38,    42,    43,    44,    45,    49,    52,
-      58,    61,    64,    70,    73,    79,    85,    88,    94,   100,
-     101,   102,   103,   104,   105,   106
+       0,    54,    54,    55,    59,    60,    61,    62,    63,    64,
+      65,    69,    72,    78,    81,    84,    90,    93,    99,   105,
+     112,   121,   133,   146,   153,   156,   162,   168,   169,   170,
+     171,   172,   173,   174
 };
 #endif
 
@@ -542,10 +567,12 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
 static const char *const yytname[] =
 {
   "\"end of file\"", "error", "\"invalid token\"", "IDENTIFIER", "NUMBER",
-  "'+'", "'-'", "'*'", "'/'", "'('", "')'", "DOUBLE", "ARRAY", "PRINT",
-  "OPEN_BRACKET", "CLOSE_BRACKET", "SLICE", "NEWLINE", "'='", "$accept",
-  "program", "statement", "declaration", "assignment", "array_access",
-  "print_statement", "term", "array_index", "expr", YY_NULLPTR
+  "'+'", "'-'", "'*'", "'/'", "'('", "')'", "DOUBLE", "ARRAY", "SET_TAG",
+  "FILTER_BY_TAG", "PRINT", "OPEN_BRACKET", "CLOSE_BRACKET", "COMMA",
+  "COLON", "NEWLINE", "'='", "$accept", "program", "statement",
+  "declaration", "assignment", "array_access", "print_statement",
+  "array_definition", "array_elements", "tag_assignment",
+  "filtering_operation", "term", "array_index", "expr", YY_NULLPTR
 };
 
 static const char *
@@ -555,7 +582,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-29)
+#define YYPACT_NINF (-41)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -569,12 +596,14 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-       1,   -11,    -6,     8,     2,     5,   -29,   -29,   -29,   -29,
-      20,     7,    33,     7,   -29,    13,   -29,   -29,    26,    30,
-     -29,     7,   -29,   -29,    40,    37,    21,   -29,    24,    20,
-      27,     7,     7,     7,     7,    48,   -29,    20,     7,    38,
-     -29,    42,    42,   -29,   -29,    41,    43,    40,    45,    46,
-      36,    20,    51,     7,    47,    49,    40,   -29,   -29
+      22,   -12,    -5,     4,    23,    27,    31,     2,    12,   -41,
+     -41,   -41,   -41,   -41,   -41,   -41,    37,    35,    39,    41,
+      24,   -41,    35,   -41,    26,   -41,   -41,    47,    36,   -41,
+      35,   -41,   -41,    55,    42,   -41,     1,    61,    43,   -41,
+     -10,    37,    49,    35,    35,    35,    35,    62,   -41,    63,
+     -41,   -41,    37,    35,    51,   -41,    21,    21,   -41,   -41,
+      52,   -41,    53,    55,    56,    57,    50,    37,    70,    35,
+      58,    59,    55,   -41,   -41
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -582,24 +611,28 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,     0,     0,     0,     0,     4,     5,     6,     7,
-       0,     0,     0,     0,     1,     0,     3,    18,     0,    16,
-      17,     0,    20,    19,    12,     0,     0,     2,    13,     0,
-       0,     0,     0,     0,     0,     0,    15,     0,     0,     0,
-      25,    21,    22,    23,    24,     0,     0,    10,    13,     8,
-      14,     0,     0,     0,     0,     0,    11,    14,     9
+       0,     0,     0,     0,     0,     0,     0,     0,     0,     4,
+       5,     6,     7,     8,     9,    10,     0,     0,     0,     0,
+       0,    23,     0,     1,     0,     3,    26,     0,    24,    25,
+       0,    28,    27,    15,     0,    20,     0,     0,     0,     2,
+      16,     0,     0,     0,     0,     0,     0,     0,    19,     0,
+      22,    18,     0,     0,     0,    33,    29,    30,    31,    32,
+       0,    21,     0,    13,    16,    11,    17,     0,     0,     0,
+       0,     0,    14,    17,    12
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -29,   -29,    53,   -29,   -29,    39,   -29,   -29,   -28,   -13
+     -41,   -41,    71,   -41,   -41,     3,   -41,   -41,   -41,   -41,
+     -41,   -41,   -40,   -22
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     4,     5,     6,     7,    22,     9,    23,    18,    24
+       0,     7,     8,     9,    10,    31,    12,    13,    36,    14,
+      15,    32,    27,    33
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -607,52 +640,58 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      26,    39,    14,    10,     1,     1,    12,    11,    30,    46,
-      19,    20,     2,     2,     3,     3,    21,    13,    41,    42,
-      43,    44,    16,    54,    17,    47,    31,    32,    33,    34,
-      27,    36,    31,    32,    33,    34,    25,    40,    37,     8,
-      56,    28,    38,     8,    29,    31,    32,    33,    34,    33,
-      34,    35,    45,    48,    53,    55,    49,    15,    50,    51,
-      52,     0,    57,     0,    58
+      38,    54,    23,    11,    16,     1,    52,    18,    42,    17,
+      11,    53,    62,     2,     3,     4,     5,     6,    48,    49,
+      19,    56,    57,    58,    59,     1,    20,    70,    45,    46,
+      21,    63,    25,     2,     3,     4,     5,     6,    28,    29,
+      22,    26,    34,    37,    30,    35,    39,    72,    43,    44,
+      45,    46,    41,    51,    43,    44,    45,    46,    47,    55,
+      43,    44,    45,    46,    40,    50,    60,    61,    64,    65,
+      66,    69,    67,    68,    71,    73,    74,     0,    24
 };
 
 static const yytype_int8 yycheck[] =
 {
-      13,    29,     0,    14,     3,     3,    12,    18,    21,    37,
-       3,     4,    11,    11,    13,    13,     9,     9,    31,    32,
-      33,    34,    17,    51,     4,    38,     5,     6,     7,     8,
-      17,    10,     5,     6,     7,     8,     3,    10,    14,     0,
-      53,    15,    18,     4,    14,     5,     6,     7,     8,     7,
-       8,    14,     4,    15,    18,     4,    15,     4,    15,    14,
-      14,    -1,    15,    -1,    15
+      22,    41,     0,     0,    16,     3,    16,    12,    30,    21,
+       7,    21,    52,    11,    12,    13,    14,    15,    17,    18,
+      16,    43,    44,    45,    46,     3,     3,    67,     7,     8,
+       3,    53,    20,    11,    12,    13,    14,    15,     3,     4,
+       9,     4,     3,    19,     9,     4,    20,    69,     5,     6,
+       7,     8,    16,    10,     5,     6,     7,     8,    16,    10,
+       5,     6,     7,     8,    17,     4,     4,     4,    17,    17,
+      17,    21,    16,    16,     4,    17,    17,    -1,     7
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     3,    11,    13,    20,    21,    22,    23,    24,    25,
-      14,    18,    12,     9,     0,    21,    17,     4,    27,     3,
-       4,     9,    24,    26,    28,     3,    28,    17,    15,    14,
-      28,     5,     6,     7,     8,    14,    10,    14,    18,    27,
-      10,    28,    28,    28,    28,     4,    27,    28,    15,    15,
-      15,    14,    14,    18,    27,     4,    28,    15,    15
+       0,     3,    11,    12,    13,    14,    15,    23,    24,    25,
+      26,    27,    28,    29,    31,    32,    16,    21,    12,    16,
+       3,     3,     9,     0,    24,    20,     4,    34,     3,     4,
+       9,    27,    33,    35,     3,     4,    30,    19,    35,    20,
+      17,    16,    35,     5,     6,     7,     8,    16,    17,    18,
+       4,    10,    16,    21,    34,    10,    35,    35,    35,    35,
+       4,     4,    34,    35,    17,    17,    17,    16,    16,    21,
+      34,     4,    35,    17,    17
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    19,    20,    20,    21,    21,    21,    21,    22,    22,
-      23,    23,    23,    24,    24,    25,    26,    26,    27,    28,
-      28,    28,    28,    28,    28,    28
+       0,    22,    23,    23,    24,    24,    24,    24,    24,    24,
+      24,    25,    25,    26,    26,    26,    27,    27,    28,    29,
+      30,    30,    31,    32,    33,    33,    34,    35,    35,    35,
+      35,    35,    35,    35
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     3,     2,     1,     1,     1,     1,     6,     9,
-       6,     9,     3,     4,     7,     4,     1,     1,     1,     1,
-       1,     3,     3,     3,     3,     3
+       0,     2,     3,     2,     1,     1,     1,     1,     1,     1,
+       1,     6,     9,     6,     9,     3,     4,     7,     4,     4,
+       1,     3,     4,     2,     1,     1,     1,     1,     1,     3,
+       3,     3,     3,     3
 };
 
 
@@ -1115,138 +1154,194 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 8: /* declaration: DOUBLE ARRAY IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET  */
-#line 49 "arrays.y"
+  case 11: /* declaration: DOUBLE ARRAY IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET  */
+#line 69 "arrays.y"
                                                                {
     declareArrayInSymbolTable((yyvsp[-3].identifier), (int) (yyvsp[-1].double_literal));
   }
-#line 1124 "arrays.tab.c"
+#line 1163 "arrays.tab.c"
     break;
 
-  case 9: /* declaration: DOUBLE ARRAY IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET OPEN_BRACKET NUMBER CLOSE_BRACKET  */
-#line 52 "arrays.y"
+  case 12: /* declaration: DOUBLE ARRAY IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET OPEN_BRACKET NUMBER CLOSE_BRACKET  */
+#line 72 "arrays.y"
                                                                                                 {
     declare2DArrayInSymbolTable((yyvsp[-6].identifier), (int) (yyvsp[-4].double_literal), (int) (yyvsp[-1].double_literal));
   }
-#line 1132 "arrays.tab.c"
+#line 1171 "arrays.tab.c"
     break;
 
-  case 10: /* assignment: IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET '=' expr  */
-#line 58 "arrays.y"
+  case 13: /* assignment: IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET '=' expr  */
+#line 78 "arrays.y"
                                                              {
     setArrayValueInSymbolTable((yyvsp[-5].identifier), (yyvsp[-3].int_literal), (yyvsp[0].double_literal));  // Fixed types for 1D array
   }
-#line 1140 "arrays.tab.c"
+#line 1179 "arrays.tab.c"
     break;
 
-  case 11: /* assignment: IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET OPEN_BRACKET array_index CLOSE_BRACKET '=' expr  */
-#line 61 "arrays.y"
+  case 14: /* assignment: IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET OPEN_BRACKET array_index CLOSE_BRACKET '=' expr  */
+#line 81 "arrays.y"
                                                                                                       {
     set2DArrayValueInSymbolTable((yyvsp[-8].identifier), (yyvsp[-6].int_literal), (yyvsp[-3].int_literal), (yyvsp[0].double_literal));  // Handle 2D array assignment
   }
-#line 1148 "arrays.tab.c"
+#line 1187 "arrays.tab.c"
     break;
 
-  case 12: /* assignment: IDENTIFIER '=' expr  */
-#line 64 "arrays.y"
+  case 15: /* assignment: IDENTIFIER '=' expr  */
+#line 84 "arrays.y"
                         {
     setValueInSymbolTable((yyvsp[-2].identifier), (yyvsp[0].double_literal));
   }
-#line 1156 "arrays.tab.c"
+#line 1195 "arrays.tab.c"
     break;
 
-  case 13: /* array_access: IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET  */
-#line 70 "arrays.y"
+  case 16: /* array_access: IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET  */
+#line 90 "arrays.y"
                                                     {
     (yyval.double_literal) = getArrayValueFromSymbolTable((yyvsp[-3].identifier), (yyvsp[-1].int_literal));
   }
-#line 1164 "arrays.tab.c"
+#line 1203 "arrays.tab.c"
     break;
 
-  case 14: /* array_access: IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET OPEN_BRACKET array_index CLOSE_BRACKET  */
-#line 73 "arrays.y"
+  case 17: /* array_access: IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET OPEN_BRACKET array_index CLOSE_BRACKET  */
+#line 93 "arrays.y"
                                                                                              {
     (yyval.double_literal) = get2DArrayValueFromSymbolTable((yyvsp[-6].identifier), (yyvsp[-4].int_literal), (yyvsp[-1].int_literal));
   }
-#line 1172 "arrays.tab.c"
+#line 1211 "arrays.tab.c"
     break;
 
-  case 15: /* print_statement: PRINT '(' expr ')'  */
-#line 79 "arrays.y"
+  case 18: /* print_statement: PRINT '(' expr ')'  */
+#line 99 "arrays.y"
                      {
     printf("%lf\n", (yyvsp[-1].double_literal));
   }
-#line 1180 "arrays.tab.c"
+#line 1219 "arrays.tab.c"
     break;
 
-  case 16: /* term: IDENTIFIER  */
-#line 85 "arrays.y"
-             {
-    (yyval.double_literal) = getValueFromSymbolTable((yyvsp[0].identifier));
-  }
-#line 1188 "arrays.tab.c"
+  case 19: /* array_definition: ARRAY OPEN_BRACKET array_elements CLOSE_BRACKET  */
+#line 106 "arrays.y"
+    {
+        printf("Array created with %d elements.\n", tagged_array.count);
+    }
+#line 1227 "arrays.tab.c"
     break;
 
-  case 17: /* term: NUMBER  */
-#line 88 "arrays.y"
-           {
-    (yyval.double_literal) = (yyvsp[0].double_literal);
-  }
-#line 1196 "arrays.tab.c"
-    break;
-
-  case 18: /* array_index: NUMBER  */
-#line 94 "arrays.y"
-         {
-    (yyval.int_literal) = (int) (yyvsp[0].double_literal);
-  }
-#line 1204 "arrays.tab.c"
-    break;
-
-  case 19: /* expr: term  */
-#line 100 "arrays.y"
-        { (yyval.double_literal) = (yyvsp[0].double_literal); }
-#line 1210 "arrays.tab.c"
-    break;
-
-  case 20: /* expr: array_access  */
-#line 101 "arrays.y"
-                  { (yyval.double_literal) = (yyvsp[0].double_literal); }
-#line 1216 "arrays.tab.c"
-    break;
-
-  case 21: /* expr: expr '+' expr  */
-#line 102 "arrays.y"
-                   { (yyval.double_literal) = performBinaryOperation((yyvsp[-2].double_literal), (yyvsp[0].double_literal), '+'); }
-#line 1222 "arrays.tab.c"
-    break;
-
-  case 22: /* expr: expr '-' expr  */
-#line 103 "arrays.y"
-                   { (yyval.double_literal) = performBinaryOperation((yyvsp[-2].double_literal), (yyvsp[0].double_literal), '-'); }
-#line 1228 "arrays.tab.c"
-    break;
-
-  case 23: /* expr: expr '*' expr  */
-#line 104 "arrays.y"
-                   { (yyval.double_literal) = performBinaryOperation((yyvsp[-2].double_literal), (yyvsp[0].double_literal), '*'); }
-#line 1234 "arrays.tab.c"
-    break;
-
-  case 24: /* expr: expr '/' expr  */
-#line 105 "arrays.y"
-                   { (yyval.double_literal) = performBinaryOperation((yyvsp[-2].double_literal), (yyvsp[0].double_literal), '/'); }
+  case 20: /* array_elements: NUMBER  */
+#line 113 "arrays.y"
+    {
+        if (tagged_array.count < MAX_SIZE) {
+            tagged_array.elements[tagged_array.count].value = (yyvsp[0].double_literal); // Use $1 for NUMBER value
+            tagged_array.elements[tagged_array.count].tag = NULL; // Initialize tag to NULL
+            tagged_array.count++;
+        }
+        (yyval.double_literal) = tagged_array.count; // Return the current count of elements
+    }
 #line 1240 "arrays.tab.c"
     break;
 
-  case 25: /* expr: '(' expr ')'  */
-#line 106 "arrays.y"
+  case 21: /* array_elements: array_elements COMMA NUMBER  */
+#line 122 "arrays.y"
+    {
+        if (tagged_array.count < MAX_SIZE) {
+            tagged_array.elements[tagged_array.count].value = (yyvsp[0].double_literal); // Use $3 for NUMBER value
+            tagged_array.elements[tagged_array.count].tag = NULL; // Initialize tag to NULL
+            tagged_array.count++;
+        }
+        (yyval.double_literal) = tagged_array.count; // Return the current count of elements
+    }
+#line 1253 "arrays.tab.c"
+    break;
+
+  case 22: /* tag_assignment: SET_TAG IDENTIFIER COLON NUMBER  */
+#line 134 "arrays.y"
+    {
+        for (int i = 0; i < tagged_array.count; i++) {
+            if (tagged_array.elements[i].value == (yyvsp[0].double_literal)) {
+                tagged_array.elements[i].tag = strdup((yyvsp[-2].identifier));
+                printf("Tag '%s' assigned to element %.2f\n", (yyvsp[-2].identifier), (yyvsp[0].double_literal));
+                break;
+            }
+        }
+    }
+#line 1267 "arrays.tab.c"
+    break;
+
+  case 23: /* filtering_operation: FILTER_BY_TAG IDENTIFIER  */
+#line 147 "arrays.y"
+    {
+        filter_by_tag((yyvsp[0].identifier));
+    }
+#line 1275 "arrays.tab.c"
+    break;
+
+  case 24: /* term: IDENTIFIER  */
+#line 153 "arrays.y"
+             {
+    (yyval.double_literal) = getValueFromSymbolTable((yyvsp[0].identifier));
+  }
+#line 1283 "arrays.tab.c"
+    break;
+
+  case 25: /* term: NUMBER  */
+#line 156 "arrays.y"
+           {
+    (yyval.double_literal) = (yyvsp[0].double_literal);
+  }
+#line 1291 "arrays.tab.c"
+    break;
+
+  case 26: /* array_index: NUMBER  */
+#line 162 "arrays.y"
+         {
+    (yyval.int_literal) = (int) (yyvsp[0].double_literal);
+  }
+#line 1299 "arrays.tab.c"
+    break;
+
+  case 27: /* expr: term  */
+#line 168 "arrays.y"
+        { (yyval.double_literal) = (yyvsp[0].double_literal); }
+#line 1305 "arrays.tab.c"
+    break;
+
+  case 28: /* expr: array_access  */
+#line 169 "arrays.y"
+                  { (yyval.double_literal) = (yyvsp[0].double_literal); }
+#line 1311 "arrays.tab.c"
+    break;
+
+  case 29: /* expr: expr '+' expr  */
+#line 170 "arrays.y"
+                   { (yyval.double_literal) = performBinaryOperation((yyvsp[-2].double_literal), (yyvsp[0].double_literal), '+'); }
+#line 1317 "arrays.tab.c"
+    break;
+
+  case 30: /* expr: expr '-' expr  */
+#line 171 "arrays.y"
+                   { (yyval.double_literal) = performBinaryOperation((yyvsp[-2].double_literal), (yyvsp[0].double_literal), '-'); }
+#line 1323 "arrays.tab.c"
+    break;
+
+  case 31: /* expr: expr '*' expr  */
+#line 172 "arrays.y"
+                   { (yyval.double_literal) = performBinaryOperation((yyvsp[-2].double_literal), (yyvsp[0].double_literal), '*'); }
+#line 1329 "arrays.tab.c"
+    break;
+
+  case 32: /* expr: expr '/' expr  */
+#line 173 "arrays.y"
+                   { (yyval.double_literal) = performBinaryOperation((yyvsp[-2].double_literal), (yyvsp[0].double_literal), '/'); }
+#line 1335 "arrays.tab.c"
+    break;
+
+  case 33: /* expr: '(' expr ')'  */
+#line 174 "arrays.y"
                   { (yyval.double_literal) = (yyvsp[-1].double_literal); }
-#line 1246 "arrays.tab.c"
+#line 1341 "arrays.tab.c"
     break;
 
 
-#line 1250 "arrays.tab.c"
+#line 1345 "arrays.tab.c"
 
       default: break;
     }
@@ -1439,7 +1534,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 109 "arrays.y"
+#line 177 "arrays.y"
 
 
 void yyerror(const char *s) {
@@ -1448,7 +1543,18 @@ void yyerror(const char *s) {
   fprintf(stderr, "Error: %s at line %d near '%s'\n", s, yylineno, yytext);
 }
 
+void filter_by_tag(const char *tag) {
+    printf("Filtered elements with tag '%s': ", tag);
+    for (int i = 0; i < tagged_array.count; i++) {
+        if (tagged_array.elements[i].tag != NULL && strcmp(tagged_array.elements[i].tag, tag) == 0) {
+            printf("%.2f ", tagged_array.elements[i].value);
+        }
+    }
+    printf("\n");
+}
+
 int main(int argc, char *argv[]) {
+  tagged_array.count = 0; // Initialize the tagged array
   yyin = fopen(argv[1], "r");
   if (!yyin) {
     fprintf(stderr, "Error opening file\n");

@@ -58,11 +58,14 @@ extern int yydebug;
     NUMBER = 259,                  /* NUMBER  */
     DOUBLE = 260,                  /* DOUBLE  */
     ARRAY = 261,                   /* ARRAY  */
-    PRINT = 262,                   /* PRINT  */
-    OPEN_BRACKET = 263,            /* OPEN_BRACKET  */
-    CLOSE_BRACKET = 264,           /* CLOSE_BRACKET  */
-    SLICE = 265,                   /* SLICE  */
-    NEWLINE = 266                  /* NEWLINE  */
+    SET_TAG = 262,                 /* SET_TAG  */
+    FILTER_BY_TAG = 263,           /* FILTER_BY_TAG  */
+    PRINT = 264,                   /* PRINT  */
+    OPEN_BRACKET = 265,            /* OPEN_BRACKET  */
+    CLOSE_BRACKET = 266,           /* CLOSE_BRACKET  */
+    COMMA = 267,                   /* COMMA  */
+    COLON = 268,                   /* COLON  */
+    NEWLINE = 269                  /* NEWLINE  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -71,13 +74,13 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 14 "arrays.y"
+#line 31 "arrays.y"
 
 	char *identifier;
 	double double_literal;
 	int int_literal;
 
-#line 81 "arrays.tab.h"
+#line 84 "arrays.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

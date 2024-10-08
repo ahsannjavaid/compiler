@@ -1,13 +1,30 @@
 %{
   /* C code or headers included here */
-#include <stdio.h>
-#include <stdlib.h>
 #include "IR.h"
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_SIZE 100
+
+typedef struct {
+    double value;
+    char *tag;
+} TaggedElement;
+
+typedef struct {
+    TaggedElement elements[MAX_SIZE];
+    int count;
+} TaggedArray;
 
 extern int yylex();
 extern int yyparse();
 extern FILE *yyin;
 void yyerror(const char *s);
+
+TaggedArray tagged_array; // Global tagged array
+
+// Function to filter elements by tag
+void filter_by_tag(const char *tag);
 
 %}
 
@@ -20,14 +37,14 @@ void yyerror(const char *s);
 %token <identifier> IDENTIFIER
 %token <double_literal> NUMBER
 
-%type <double_literal> term expr array_access
+%type <double_literal> term expr array_access array_elements
 %type <int_literal> array_index
 
 %left '+' '-' 
 %left '*' '/'
 %left '(' ')'
 
-%token DOUBLE ARRAY PRINT OPEN_BRACKET CLOSE_BRACKET SLICE NEWLINE
+%token DOUBLE ARRAY SET_TAG FILTER_BY_TAG PRINT OPEN_BRACKET CLOSE_BRACKET COMMA COLON NEWLINE
 
 %start program
 
@@ -43,6 +60,9 @@ statement:
   | assignment
   | array_access
   | print_statement
+  | array_definition
+  | tag_assignment
+  | filtering_operation
   ;
 
 declaration:
@@ -80,6 +100,54 @@ print_statement:
     printf("%lf\n", $3);
   }
   ;
+  
+array_definition:
+    ARRAY OPEN_BRACKET array_elements CLOSE_BRACKET
+    {
+        printf("Array created with %d elements.\n", tagged_array.count);
+    }
+;  
+
+array_elements:
+    NUMBER
+    {
+        if (tagged_array.count < MAX_SIZE) {
+            tagged_array.elements[tagged_array.count].value = $1; // Use $1 for NUMBER value
+            tagged_array.elements[tagged_array.count].tag = NULL; // Initialize tag to NULL
+            tagged_array.count++;
+        }
+        $$ = tagged_array.count; // Return the current count of elements
+    }
+    | array_elements COMMA NUMBER
+    {
+        if (tagged_array.count < MAX_SIZE) {
+            tagged_array.elements[tagged_array.count].value = $3; // Use $3 for NUMBER value
+            tagged_array.elements[tagged_array.count].tag = NULL; // Initialize tag to NULL
+            tagged_array.count++;
+        }
+        $$ = tagged_array.count; // Return the current count of elements
+    }
+    ;
+  
+tag_assignment:
+    SET_TAG IDENTIFIER COLON NUMBER
+    {
+        for (int i = 0; i < tagged_array.count; i++) {
+            if (tagged_array.elements[i].value == $4) {
+                tagged_array.elements[i].tag = strdup($2);
+                printf("Tag '%s' assigned to element %.2f\n", $2, $4);
+                break;
+            }
+        }
+    }
+    ;
+  
+filtering_operation:
+    FILTER_BY_TAG IDENTIFIER
+    {
+        filter_by_tag($2);
+    }
+    ;
 
 term:
   IDENTIFIER {
@@ -114,7 +182,18 @@ void yyerror(const char *s) {
   fprintf(stderr, "Error: %s at line %d near '%s'\n", s, yylineno, yytext);
 }
 
+void filter_by_tag(const char *tag) {
+    printf("Filtered elements with tag '%s': ", tag);
+    for (int i = 0; i < tagged_array.count; i++) {
+        if (tagged_array.elements[i].tag != NULL && strcmp(tagged_array.elements[i].tag, tag) == 0) {
+            printf("%.2f ", tagged_array.elements[i].value);
+        }
+    }
+    printf("\n");
+}
+
 int main(int argc, char *argv[]) {
+  tagged_array.count = 0; // Initialize the tagged array
   yyin = fopen(argv[1], "r");
   if (!yyin) {
     fprintf(stderr, "Error opening file\n");
