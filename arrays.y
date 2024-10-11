@@ -49,10 +49,16 @@ statement:
 
 declaration:
   DOUBLE ARRAY IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET    {
-    declareArrayInSymbolTable($3, (int) $5);
+    declareArrayInSymbolTable($3, (int) $5, 0.0, 100000.0);
   }
   | DOUBLE ARRAY IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET OPEN_BRACKET NUMBER CLOSE_BRACKET {
-    declare2DArrayInSymbolTable($3, (int) $5, (int) $8);
+    declare2DArrayInSymbolTable($3, (int) $5, (int) $8, 0.0, 100000.0);
+  }
+  | DOUBLE ARRAY IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET '(' NUMBER COMMA NUMBER ')' {
+    declareArrayInSymbolTable($3, (int) $5, $8, $10);
+  }
+  | DOUBLE ARRAY IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET OPEN_BRACKET NUMBER CLOSE_BRACKET '(' NUMBER COMMA NUMBER ')' {
+    declare2DArrayInSymbolTable($3, (int) $5, (int) $8, $11, $13);
   }
   ;
 
@@ -85,7 +91,7 @@ array_access:
 
 print_statement:
   PRINT '(' expr ')' {
-    printf("%lf\n", $3);
+    printf("%.2f\n", $3);
   }
   ;
   

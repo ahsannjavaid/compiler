@@ -6,6 +6,8 @@
 struct ArrayElement {
     double value;
     std::string tag;
+    double minValue;
+    double maxValue;
 };
 
 // This is symbol table data structure.
@@ -29,15 +31,18 @@ double performBinaryOperation(double lhs, double rhs, int op) {
 }
 
 // 1D Array Functions
-void declareArrayInSymbolTable(const char* id, int size) {
+void declareArrayInSymbolTable(const char* id, int size, double minValue, double maxValue) {
     std::string name(id);
-    arraySymbolTable[name] = std::vector<ArrayElement>(size, {0.0, ""});
+    arraySymbolTable[name] = std::vector<ArrayElement>(size, {0.0, "", minValue, maxValue});
 }
 
 void setArrayValueInSymbolTable(const char* id, int index, double value, const char* tag) {
     std::string name(id);
     if (arraySymbolTable.find(name) != arraySymbolTable.end()) {
-        if (value != 0.0) arraySymbolTable[name][index].value = value;
+        if (value != 0.0) {
+            if (value <= arraySymbolTable[name][0].maxValue && value >= arraySymbolTable[name][0].minValue) arraySymbolTable[name][index].value = value;
+            else printf("%s range is MIN=%.2f and MAX=%.2f. You have assigned=%.2f.\n", id, arraySymbolTable[name][0].minValue, arraySymbolTable[name][0].maxValue, value);
+        }
         arraySymbolTable[name][index].tag = tag; // Setting tag
     }
 }
@@ -51,15 +56,18 @@ double getArrayValueFromSymbolTable(const char* id, int index) {
 }
 
 // 2D Array Functions
-void declare2DArrayInSymbolTable(const char* id, int size1, int size2) {
+void declare2DArrayInSymbolTable(const char* id, int size1, int size2, double minValue, double maxValue) {
     std::string name(id);
-    array2DSymbolTable[name] = std::vector<std::vector<ArrayElement>>(size1, std::vector<ArrayElement>(size2, {0.0, ""}));
+    array2DSymbolTable[name] = std::vector<std::vector<ArrayElement>>(size1, std::vector<ArrayElement>(size2, {0.0, "", minValue, maxValue}));
 }
 
 void set2DArrayValueInSymbolTable(const char* id, int index1, int index2, double value, const char* tag) {
     std::string name(id);
     if (array2DSymbolTable.find(name) != array2DSymbolTable.end()) {
-        if (value != 0.0) array2DSymbolTable[name][index1][index2].value = value;
+        if (value != 0.0) {
+            if (value <= array2DSymbolTable[name][0][0].maxValue && value >= array2DSymbolTable[name][0][0].minValue) array2DSymbolTable[name][index1][index2].value = value;
+            else printf("%s range is MIN=%.2f and MAX=%.2f. You have assigned=%.2f.\n", id, array2DSymbolTable[name][0][0].minValue, array2DSymbolTable[name][0][0].maxValue, value); 
+        }
         array2DSymbolTable[name][index1][index2].tag = tag;
     }
 }
