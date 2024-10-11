@@ -4,27 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_SIZE 100
-
-typedef struct {
-    double value;
-    char *tag;
-} TaggedElement;
-
-typedef struct {
-    TaggedElement elements[MAX_SIZE];
-    int count;
-} TaggedArray;
-
 extern int yylex();
 extern int yyparse();
 extern FILE *yyin;
 void yyerror(const char *s);
-
-TaggedArray tagged_array; // Global tagged array
-
-// Function to filter elements by tag
-void filter_by_tag(const char *tag);
 
 %}
 
@@ -37,7 +20,7 @@ void filter_by_tag(const char *tag);
 %token <identifier> IDENTIFIER
 %token <double_literal> NUMBER
 
-%type <double_literal> term expr array_access array_elements
+%type <double_literal> term expr array_access
 %type <int_literal> array_index
 
 %left '+' '-' 
@@ -60,7 +43,6 @@ statement:
   | assignment
   | array_access
   | print_statement
-  | array_definition
   | tag_assignment
   | filtering_operation
   ;
@@ -76,10 +58,16 @@ declaration:
 
 assignment:
   IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET '=' expr {
-    setArrayValueInSymbolTable($1, $3, $6);  // Fixed types for 1D array
+    setArrayValueInSymbolTable($1, $3, $6, "");  // Fixed types for 1D array
   }
   | IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET OPEN_BRACKET array_index CLOSE_BRACKET '=' expr {
-    set2DArrayValueInSymbolTable($1, $3, $6, $9);  // Handle 2D array assignment
+    set2DArrayValueInSymbolTable($1, $3, $6, $9, "");  // Handle 2D array assignment
+  }
+  | IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET '=' expr COLON IDENTIFIER {
+    setArrayValueInSymbolTable($1, $3, $6, $8);  // Fixed types for 1D array
+  }
+  | IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET OPEN_BRACKET array_index CLOSE_BRACKET '=' expr COLON IDENTIFIER {
+    set2DArrayValueInSymbolTable($1, $3, $6, $9, $11);  // Handle 2D array assignment
   }
   | IDENTIFIER '=' expr {
     setValueInSymbolTable($1, $3);
@@ -101,58 +89,26 @@ print_statement:
   }
   ;
   
-array_definition:
-    ARRAY OPEN_BRACKET array_elements CLOSE_BRACKET
-    {
-        printf("Array created with %d elements.\n", tagged_array.count);
-    }
-;  
-
-array_elements:
-    NUMBER
-    {
-        if (tagged_array.count < MAX_SIZE) {
-            tagged_array.elements[tagged_array.count].value = $1; // Use $1 for NUMBER value
-            tagged_array.elements[tagged_array.count].tag = NULL; // Initialize tag to NULL
-            tagged_array.count++;
-        }
-        $$ = tagged_array.count; // Return the current count of elements
-    }
-    | array_elements COMMA NUMBER
-    {
-        if (tagged_array.count < MAX_SIZE) {
-            tagged_array.elements[tagged_array.count].value = $3; // Use $3 for NUMBER value
-            tagged_array.elements[tagged_array.count].tag = NULL; // Initialize tag to NULL
-            tagged_array.count++;
-        }
-        $$ = tagged_array.count; // Return the current count of elements
-    }
-    ;
-  
 tag_assignment:
-    SET_TAG IDENTIFIER COLON NUMBER
-    {
-        for (int i = 0; i < tagged_array.count; i++) {
-            if (tagged_array.elements[i].value == $4) {
-                tagged_array.elements[i].tag = strdup($2);
-                printf("Tag '%s' assigned to element %.2f\n", $2, $4);
-                break;
-            }
-        }
+    SET_TAG IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET COLON IDENTIFIER {
+	setArrayValueInSymbolTable($2, $4, 0.0, $7);  // Fixed types for 1D array
+    }
+    | SET_TAG IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET OPEN_BRACKET array_index CLOSE_BRACKET COLON IDENTIFIER {
+	set2DArrayValueInSymbolTable($2, $4, $7, 0.0, $10);  // Fixed types for 1D array
     }
     ;
   
 filtering_operation:
-    FILTER_BY_TAG IDENTIFIER
+    FILTER_BY_TAG IDENTIFIER IDENTIFIER
     {
-        filter_by_tag($2);
+        filterArrayByTag($3, $2);
     }
     ;
 
 term:
   IDENTIFIER {
     $$ = getValueFromSymbolTable($1);
-  }
+  } 
   | NUMBER {
     $$ = $1;
   }
@@ -182,18 +138,7 @@ void yyerror(const char *s) {
   fprintf(stderr, "Error: %s at line %d near '%s'\n", s, yylineno, yytext);
 }
 
-void filter_by_tag(const char *tag) {
-    printf("Filtered elements with tag '%s': ", tag);
-    for (int i = 0; i < tagged_array.count; i++) {
-        if (tagged_array.elements[i].tag != NULL && strcmp(tagged_array.elements[i].tag, tag) == 0) {
-            printf("%.2f ", tagged_array.elements[i].value);
-        }
-    }
-    printf("\n");
-}
-
 int main(int argc, char *argv[]) {
-  tagged_array.count = 0; // Initialize the tagged array
   yyin = fopen(argv[1], "r");
   if (!yyin) {
     fprintf(stderr, "Error opening file\n");

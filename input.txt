@@ -1,15 +1,17 @@
 double array arr[10]
-arr[2] = 1.0
-arr[3] = 2.0
-arr[4] = 3.0
-
 double array matrix[5][5]
+
+arr[2] = 1.0 : positive
+arr[3] = 2.0 : negative
+arr[4] = 3.0 : positive
 matrix[2][3] = 10.5
+matrix[0][0] = 8.9 : positive
+matrix[0][1] = 3.9
+
 print(matrix[2][3] + arr[2])
 
-array [1.0, 4.0, 0.0, 98.0]
-set_tag positive: 1.0
-set_tag positive: 4.0
-set_tag positive: 98.0
-set_tag negative: 0.0
-filter_by_tag positive
+set_tag arr[2] : positive
+set_tag matrix[0][1] : negative
+
+filter_by_tag positive arr
+filter_by_tag negative matrix

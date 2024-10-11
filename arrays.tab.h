@@ -74,7 +74,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 31 "arrays.y"
+#line 14 "arrays.y"
 
 	char *identifier;
 	double double_literal;
