@@ -76,9 +76,9 @@ union YYSTYPE
 {
 #line 14 "arrays.y"
 
-	char *identifier;
-	double double_literal;
-	int int_literal;
+	char *identifier;      // For identifiers (e.g., variable names)
+	double double_literal; // For double/float numbers
+	int int_literal;       // For integer literals
 
 #line 84 "arrays.tab.h"
 

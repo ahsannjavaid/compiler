@@ -69,15 +69,15 @@
 /* First part of user prologue.  */
 #line 1 "arrays.y"
 
-  /* C code or headers included here */
+
 #include "IR.h"
 #include <stdlib.h>
 #include <string.h>
 
-extern int yylex();
-extern int yyparse();
-extern FILE *yyin;
-void yyerror(const char *s);
+extern int yylex();    // External lexer function to generate tokens
+extern int yyparse();   // External parser function to parse input
+extern FILE *yyin;      // Input file for the lexer/parser
+void yyerror(const char *s);  // Error handling function
 
 
 #line 84 "arrays.tab.c"
@@ -529,9 +529,9 @@ static const yytype_int8 yytranslate[] =
 static const yytype_uint8 yyrline[] =
 {
        0,    37,    37,    38,    42,    43,    44,    45,    46,    47,
-      51,    54,    57,    60,    66,    69,    72,    75,    78,    84,
-      87,    93,    99,   102,   108,   115,   118,   124,   130,   131,
-     132,   133,   134,   135,   136
+      51,    55,    59,    63,    70,    74,    78,    82,    86,    93,
+      97,   104,   111,   115,   122,   130,   134,   141,   148,   149,
+     150,   151,   152,   153,   154
 };
 #endif
 
@@ -1146,191 +1146,209 @@ yyreduce:
   case 10: /* declaration: DOUBLE ARRAY IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET  */
 #line 51 "arrays.y"
                                                                {
+    // Declaration of 1D array with size and default min/max values
     declareArrayInSymbolTable((yyvsp[-3].identifier), (int) (yyvsp[-1].double_literal), 0.0, 100000.0);
   }
-#line 1152 "arrays.tab.c"
+#line 1153 "arrays.tab.c"
     break;
 
   case 11: /* declaration: DOUBLE ARRAY IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET OPEN_BRACKET NUMBER CLOSE_BRACKET  */
-#line 54 "arrays.y"
+#line 55 "arrays.y"
                                                                                                 {
+    // Declaration of 2D array with size and default min/max values
     declare2DArrayInSymbolTable((yyvsp[-6].identifier), (int) (yyvsp[-4].double_literal), (int) (yyvsp[-1].double_literal), 0.0, 100000.0);
   }
-#line 1160 "arrays.tab.c"
+#line 1162 "arrays.tab.c"
     break;
 
   case 12: /* declaration: DOUBLE ARRAY IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET '(' NUMBER COMMA NUMBER ')'  */
-#line 57 "arrays.y"
+#line 59 "arrays.y"
                                                                                           {
+    // Declaration of 1D array with custom min/max values
     declareArrayInSymbolTable((yyvsp[-8].identifier), (int) (yyvsp[-6].double_literal), (yyvsp[-3].double_literal), (yyvsp[-1].double_literal));
   }
-#line 1168 "arrays.tab.c"
+#line 1171 "arrays.tab.c"
     break;
 
   case 13: /* declaration: DOUBLE ARRAY IDENTIFIER OPEN_BRACKET NUMBER CLOSE_BRACKET OPEN_BRACKET NUMBER CLOSE_BRACKET '(' NUMBER COMMA NUMBER ')'  */
-#line 60 "arrays.y"
+#line 63 "arrays.y"
                                                                                                                             {
+    // Declaration of 2D array with custom min/max values
     declare2DArrayInSymbolTable((yyvsp[-11].identifier), (int) (yyvsp[-9].double_literal), (int) (yyvsp[-6].double_literal), (yyvsp[-3].double_literal), (yyvsp[-1].double_literal));
   }
-#line 1176 "arrays.tab.c"
+#line 1180 "arrays.tab.c"
     break;
 
   case 14: /* assignment: IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET '=' expr  */
-#line 66 "arrays.y"
+#line 70 "arrays.y"
                                                              {
-    setArrayValueInSymbolTable((yyvsp[-5].identifier), (yyvsp[-3].int_literal), (yyvsp[0].double_literal), "");  // Fixed types for 1D array
+    // Assignment of a value to a 1D array element without a tag
+    setArrayValueInSymbolTable((yyvsp[-5].identifier), (yyvsp[-3].int_literal), (yyvsp[0].double_literal), "");
   }
-#line 1184 "arrays.tab.c"
+#line 1189 "arrays.tab.c"
     break;
 
   case 15: /* assignment: IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET OPEN_BRACKET array_index CLOSE_BRACKET '=' expr  */
-#line 69 "arrays.y"
+#line 74 "arrays.y"
                                                                                                       {
-    set2DArrayValueInSymbolTable((yyvsp[-8].identifier), (yyvsp[-6].int_literal), (yyvsp[-3].int_literal), (yyvsp[0].double_literal), "");  // Handle 2D array assignment
+    // Assignment of a value to a 2D array element without a tag
+    set2DArrayValueInSymbolTable((yyvsp[-8].identifier), (yyvsp[-6].int_literal), (yyvsp[-3].int_literal), (yyvsp[0].double_literal), "");
   }
-#line 1192 "arrays.tab.c"
+#line 1198 "arrays.tab.c"
     break;
 
   case 16: /* assignment: IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET '=' expr COLON IDENTIFIER  */
-#line 72 "arrays.y"
+#line 78 "arrays.y"
                                                                                 {
-    setArrayValueInSymbolTable((yyvsp[-7].identifier), (yyvsp[-5].int_literal), (yyvsp[-2].double_literal), (yyvsp[0].identifier));  // Fixed types for 1D array
+    // Assignment of a value to a 1D array element with a tag
+    setArrayValueInSymbolTable((yyvsp[-7].identifier), (yyvsp[-5].int_literal), (yyvsp[-2].double_literal), (yyvsp[0].identifier));
   }
-#line 1200 "arrays.tab.c"
+#line 1207 "arrays.tab.c"
     break;
 
   case 17: /* assignment: IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET OPEN_BRACKET array_index CLOSE_BRACKET '=' expr COLON IDENTIFIER  */
-#line 75 "arrays.y"
+#line 82 "arrays.y"
                                                                                                                        {
-    set2DArrayValueInSymbolTable((yyvsp[-10].identifier), (yyvsp[-8].int_literal), (yyvsp[-5].int_literal), (yyvsp[-2].double_literal), (yyvsp[0].identifier));  // Handle 2D array assignment
-  }
-#line 1208 "arrays.tab.c"
-    break;
-
-  case 18: /* assignment: IDENTIFIER '=' expr  */
-#line 78 "arrays.y"
-                        {
-    setValueInSymbolTable((yyvsp[-2].identifier), (yyvsp[0].double_literal));
+    // Assignment of a value to a 2D array element with a tag
+    set2DArrayValueInSymbolTable((yyvsp[-10].identifier), (yyvsp[-8].int_literal), (yyvsp[-5].int_literal), (yyvsp[-2].double_literal), (yyvsp[0].identifier));
   }
 #line 1216 "arrays.tab.c"
     break;
 
+  case 18: /* assignment: IDENTIFIER '=' expr  */
+#line 86 "arrays.y"
+                        {
+    // Assignment of a value to a scalar variable
+    setValueInSymbolTable((yyvsp[-2].identifier), (yyvsp[0].double_literal));
+  }
+#line 1225 "arrays.tab.c"
+    break;
+
   case 19: /* array_access: IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET  */
-#line 84 "arrays.y"
+#line 93 "arrays.y"
                                                     {
+    // Accessing a value from a 1D array
     (yyval.double_literal) = getArrayValueFromSymbolTable((yyvsp[-3].identifier), (yyvsp[-1].int_literal));
   }
-#line 1224 "arrays.tab.c"
+#line 1234 "arrays.tab.c"
     break;
 
   case 20: /* array_access: IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET OPEN_BRACKET array_index CLOSE_BRACKET  */
-#line 87 "arrays.y"
+#line 97 "arrays.y"
                                                                                              {
+    // Accessing a value from a 2D array
     (yyval.double_literal) = get2DArrayValueFromSymbolTable((yyvsp[-6].identifier), (yyvsp[-4].int_literal), (yyvsp[-1].int_literal));
   }
-#line 1232 "arrays.tab.c"
+#line 1243 "arrays.tab.c"
     break;
 
   case 21: /* print_statement: PRINT '(' expr ')'  */
-#line 93 "arrays.y"
+#line 104 "arrays.y"
                      {
+    // Print the evaluated expression result
     printf("%.2f\n", (yyvsp[-1].double_literal));
   }
-#line 1240 "arrays.tab.c"
+#line 1252 "arrays.tab.c"
     break;
 
   case 22: /* tag_assignment: SET_TAG IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET COLON IDENTIFIER  */
-#line 99 "arrays.y"
+#line 111 "arrays.y"
                                                                                {
-	setArrayValueInSymbolTable((yyvsp[-5].identifier), (yyvsp[-3].int_literal), 0.0, (yyvsp[0].identifier));  // Fixed types for 1D array
+    // Assign a tag to a 1D array element
+	setArrayValueInSymbolTable((yyvsp[-5].identifier), (yyvsp[-3].int_literal), 0.0, (yyvsp[0].identifier));
     }
-#line 1248 "arrays.tab.c"
+#line 1261 "arrays.tab.c"
     break;
 
   case 23: /* tag_assignment: SET_TAG IDENTIFIER OPEN_BRACKET array_index CLOSE_BRACKET OPEN_BRACKET array_index CLOSE_BRACKET COLON IDENTIFIER  */
-#line 102 "arrays.y"
+#line 115 "arrays.y"
                                                                                                                         {
-	set2DArrayValueInSymbolTable((yyvsp[-8].identifier), (yyvsp[-6].int_literal), (yyvsp[-3].int_literal), 0.0, (yyvsp[0].identifier));  // Fixed types for 1D array
+    // Assign a tag to a 2D array element
+	set2DArrayValueInSymbolTable((yyvsp[-8].identifier), (yyvsp[-6].int_literal), (yyvsp[-3].int_literal), 0.0, (yyvsp[0].identifier));
     }
-#line 1256 "arrays.tab.c"
+#line 1270 "arrays.tab.c"
     break;
 
   case 24: /* filtering_operation: FILTER_BY_TAG IDENTIFIER IDENTIFIER  */
-#line 109 "arrays.y"
+#line 123 "arrays.y"
     {
+        // Filter array elements by a given tag
         filterArrayByTag((yyvsp[0].identifier), (yyvsp[-1].identifier));
     }
-#line 1264 "arrays.tab.c"
+#line 1279 "arrays.tab.c"
     break;
 
   case 25: /* term: IDENTIFIER  */
-#line 115 "arrays.y"
+#line 130 "arrays.y"
              {
+    // Fetch the value of a scalar variable
     (yyval.double_literal) = getValueFromSymbolTable((yyvsp[0].identifier));
-  }
-#line 1272 "arrays.tab.c"
-    break;
-
-  case 26: /* term: NUMBER  */
-#line 118 "arrays.y"
-           {
-    (yyval.double_literal) = (yyvsp[0].double_literal);
-  }
-#line 1280 "arrays.tab.c"
-    break;
-
-  case 27: /* array_index: NUMBER  */
-#line 124 "arrays.y"
-         {
-    (yyval.int_literal) = (int) (yyvsp[0].double_literal);
   }
 #line 1288 "arrays.tab.c"
     break;
 
-  case 28: /* expr: term  */
-#line 130 "arrays.y"
-        { (yyval.double_literal) = (yyvsp[0].double_literal); }
-#line 1294 "arrays.tab.c"
+  case 26: /* term: NUMBER  */
+#line 134 "arrays.y"
+           {
+    // Return numeric literal
+    (yyval.double_literal) = (yyvsp[0].double_literal);
+  }
+#line 1297 "arrays.tab.c"
     break;
 
-  case 29: /* expr: array_access  */
-#line 131 "arrays.y"
-                  { (yyval.double_literal) = (yyvsp[0].double_literal); }
-#line 1300 "arrays.tab.c"
-    break;
-
-  case 30: /* expr: expr '+' expr  */
-#line 132 "arrays.y"
-                   { (yyval.double_literal) = performBinaryOperation((yyvsp[-2].double_literal), (yyvsp[0].double_literal), '+'); }
+  case 27: /* array_index: NUMBER  */
+#line 141 "arrays.y"
+         {
+    // Convert number to integer for array indexing
+    (yyval.int_literal) = (int) (yyvsp[0].double_literal);
+  }
 #line 1306 "arrays.tab.c"
     break;
 
-  case 31: /* expr: expr '-' expr  */
-#line 133 "arrays.y"
-                   { (yyval.double_literal) = performBinaryOperation((yyvsp[-2].double_literal), (yyvsp[0].double_literal), '-'); }
+  case 28: /* expr: term  */
+#line 148 "arrays.y"
+        { (yyval.double_literal) = (yyvsp[0].double_literal); }
 #line 1312 "arrays.tab.c"
     break;
 
-  case 32: /* expr: expr '*' expr  */
-#line 134 "arrays.y"
-                   { (yyval.double_literal) = performBinaryOperation((yyvsp[-2].double_literal), (yyvsp[0].double_literal), '*'); }
+  case 29: /* expr: array_access  */
+#line 149 "arrays.y"
+                  { (yyval.double_literal) = (yyvsp[0].double_literal); }
 #line 1318 "arrays.tab.c"
     break;
 
-  case 33: /* expr: expr '/' expr  */
-#line 135 "arrays.y"
-                   { (yyval.double_literal) = performBinaryOperation((yyvsp[-2].double_literal), (yyvsp[0].double_literal), '/'); }
+  case 30: /* expr: expr '+' expr  */
+#line 150 "arrays.y"
+                   { (yyval.double_literal) = performBinaryOperation((yyvsp[-2].double_literal), (yyvsp[0].double_literal), '+'); }
 #line 1324 "arrays.tab.c"
     break;
 
-  case 34: /* expr: '(' expr ')'  */
-#line 136 "arrays.y"
-                  { (yyval.double_literal) = (yyvsp[-1].double_literal); }
+  case 31: /* expr: expr '-' expr  */
+#line 151 "arrays.y"
+                   { (yyval.double_literal) = performBinaryOperation((yyvsp[-2].double_literal), (yyvsp[0].double_literal), '-'); }
 #line 1330 "arrays.tab.c"
     break;
 
+  case 32: /* expr: expr '*' expr  */
+#line 152 "arrays.y"
+                   { (yyval.double_literal) = performBinaryOperation((yyvsp[-2].double_literal), (yyvsp[0].double_literal), '*'); }
+#line 1336 "arrays.tab.c"
+    break;
 
-#line 1334 "arrays.tab.c"
+  case 33: /* expr: expr '/' expr  */
+#line 153 "arrays.y"
+                   { (yyval.double_literal) = performBinaryOperation((yyvsp[-2].double_literal), (yyvsp[0].double_literal), '/'); }
+#line 1342 "arrays.tab.c"
+    break;
+
+  case 34: /* expr: '(' expr ')'  */
+#line 154 "arrays.y"
+                  { (yyval.double_literal) = (yyvsp[-1].double_literal); }
+#line 1348 "arrays.tab.c"
+    break;
+
+
+#line 1352 "arrays.tab.c"
 
       default: break;
     }
@@ -1523,23 +1541,24 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 139 "arrays.y"
+#line 157 "arrays.y"
 
 
+// Error handling function that prints the error message, line number, and problematic token
 void yyerror(const char *s) {
   extern int yylineno;
   extern char *yytext;
   fprintf(stderr, "Error: %s at line %d near '%s'\n", s, yylineno, yytext);
 }
 
+// Main function to open a file, start parsing, and close the file
 int main(int argc, char *argv[]) {
-  yyin = fopen(argv[1], "r");
-  if (!yyin) {
+  yyin = fopen(argv[1], "r");  // Open the input file
+  if (!yyin) {                 // Handle file open error
     fprintf(stderr, "Error opening file\n");
     return 1;
   }
-  yyparse();
-  fclose(yyin);
-  return 0;
+  yyparse();                   // Parse the input
+  fclose(yyin);                // Close the input file
+  return 0;                    // Exit program
 }
-

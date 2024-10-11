@@ -515,7 +515,7 @@ char *yytext;
 	#include <stdlib.h>
 	#include <stdio.h>
 	#include <string>
-	extern void yyerror(const char *msg);
+	extern void yyerror(const char *msg);  // Error handling function declaration
 #line 520 "lex.yy.c"
 #line 521 "lex.yy.c"
 
@@ -808,32 +808,32 @@ case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
 #line 19 "arrays.l"
-{ return NEWLINE; }
+{ return NEWLINE; }  // Match and return newline
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
 #line 20 "arrays.l"
-{ return DOUBLE; }
+{ return DOUBLE; }   // Match keyword "double" and return the corresponding token
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
 #line 21 "arrays.l"
-{ return ARRAY; }
+{ return ARRAY; }    // Match keyword "array"
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
 #line 22 "arrays.l"
-{ return SET_TAG; }
+{ return SET_TAG; }  // Match keyword "set_tag"
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
 #line 23 "arrays.l"
-{ return FILTER_BY_TAG; }
+{ return FILTER_BY_TAG; }  // Match keyword "filter_by_tag"
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
 #line 24 "arrays.l"
-{ return PRINT; }
+{ return PRINT; }  // Match keyword "print"
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
@@ -843,51 +843,51 @@ YY_RULE_SETUP
 case 8:
 YY_RULE_SETUP
 #line 26 "arrays.l"
-{ yylval.identifier=strdup(yytext); return IDENTIFIER; }
+{ yylval.identifier=strdup(yytext); return IDENTIFIER; }  // Match identifier and store its value in yylval
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
 #line 27 "arrays.l"
-{ return OPEN_BRACKET; }
+{ return OPEN_BRACKET; }  // Match opening bracket '['
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
 #line 28 "arrays.l"
-{ yylval.double_literal=atof(yytext); return NUMBER; }
+{ yylval.double_literal=atof(yytext); return NUMBER; }  // Match a number, convert to double, and return as NUMBER token
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
 #line 29 "arrays.l"
-{ return CLOSE_BRACKET; }
+{ return CLOSE_BRACKET; }  // Match closing bracket ']'
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
 #line 30 "arrays.l"
-{ return COLON; }
+{ return COLON; }  // Match colon ':'
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
 #line 31 "arrays.l"
-{ return COMMA; }
+{ return COMMA; }  // Match comma ','
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
 #line 33 "arrays.l"
-/* ignore whitespace */ ;
+/* ignore whitespace */ ; 
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 34 "arrays.l"
-{ return yytext[0]; } 
+#line 35 "arrays.l"
+{ return yytext[0]; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 35 "arrays.l"
-{ yyerror("this is a illegal lexeme"); exit(EXIT_FAILURE); }  // Catch-all rule moved to the bottom
+#line 37 "arrays.l"
+{ yyerror("This is an illegal lexeme."); exit(EXIT_FAILURE); }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 37 "arrays.l"
+#line 39 "arrays.l"
 ECHO;
 	YY_BREAK
 #line 894 "lex.yy.c"
@@ -1907,8 +1907,6 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 37 "arrays.l"
+#line 39 "arrays.l"
 
-
-  /* User-defined functions, such as `yywrap()` or helper functions */
 
